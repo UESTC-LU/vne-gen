@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the paper below."
+title: "VNE-Gen: Virtual Network Embedding via Generative Sequence Modeling (reference implementation)"
+version: 0.1.0
+date-released: "2026-10-25"
+license: MIT
+repository-code: "https://github.com/UESTC-LU/vne-gen"
+authors:
+  - name: "The VNE-Gen authors"
+preferred-citation:
+  type: article
+  title: "Virtual Network Embedding via Generative Sequence Modeling"
+  authors:
+    - name: "The VNE-Gen authors"
+  year: 2026
+  journal: "<journal / venue>"

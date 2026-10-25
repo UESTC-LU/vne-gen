@@ -1,0 +1,42 @@
+# Configuration evaluated in the paper (Sec. VI-A): 12-layer GPT-2-small backbone (hidden 768),
+# K = 3 decision blocks, two three-layer GNN encoders with 128-dimensional outputs, stage-specific LoRA,
+# AdamW with learning rate 1e-4, weight decay 1e-4, 2,000 warm-up steps and gradient clipping at 0.5.
+model:
+  gnn_hidden: 128
+  gnn_layers: 3
+  message_passing: true
+  backbone: gpt2
+  pretrained: gpt2          # language-pretrained checkpoint (Hugging Face id or local path); null = random init
+  d_model: 768
+  n_layer: 12
+  n_head: 12
+  context_blocks: 3
+  max_timesteps: 16
+  lora_rank: 64
+  lora_alpha: 64.0
+  lora_dropout: 0.05
+  shared_adapter: false
+  pointer_dim: 128
+  return_conditioning: true
+  return_feat_dim: 32
+  dropout: 0.1
+  cap_scale: 100.0
+  demand_scale: 20.0
+  max_request_nodes: 10
+
+train:
+  batch_size: 64
+  epochs: 10
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  warmup_steps: 2000
+  schedule: constant
+  grad_clip: 0.5
+  num_workers: 8
+  val_fraction: 0.02
+  log_every: 50
+  eval_every: 2000
+  seed: 0
+  per_trajectory_loss: false
+  completed_only: false
+  amp: false
