@@ -2,6 +2,22 @@
 
 All commands run from the repository root. `bash scripts/run_all.sh` chains every step below.
 
+### Dynamic workload clock
+
+The reference generator follows [Virne's current Poisson arrival model](https://virne.readthedocs.io/en/latest/start/simulation.html#arrival-process)
+and adds a unit-slot clock. It accumulates exponential interarrival times of mean `1 / lam`
+and rounds each cumulative timestamp up to the next integer boundary (leaving integer values unchanged).
+For example, continuous arrivals at 0.2 and 0.8 both enter at slot 1. Each request's holding
+time is drawn independently with exponential scale 500 by default and rounded up to at least
+one slot. A request arriving at `a` with duration `h` occupies slots `a` through `a + h - 1`.
+Departures at a boundary free capacity before arrivals at that boundary. Tied arrivals are
+processed in generation order. The time-aware selector groups consecutive slots with identical
+active requests by checking the intervals between event boundaries.
+
+This convention applies to newly generated dynamic workloads. To match an archived experiment,
+compare the ordered request IDs and arrival/departure slots against its saved trace. A matching
+seed alone does not establish that two experiments used the same clock.
+
 ## 0. Corpus and training (Sec. IV-C, VI-A)
 
 | Step | Command | Notes |
