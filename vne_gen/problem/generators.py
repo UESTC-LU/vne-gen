@@ -6,12 +6,13 @@ Experimental defaults follow the paper:
 * each request has 2-10 virtual nodes, node-resource and link-bandwidth demands are integers sampled
   uniformly from ``[1, 20]``, each possible virtual link is included independently with probability 0.5 and
   the request graph is resampled until it is connected;
-* requests arrive according to a Poisson process with rate ``lam`` requests per slot and hold resources for an
-  exponentially distributed time with mean 500 slots.
+* the dynamic workload places Poisson arrivals on integer slot boundaries and rounds independent
+  exponential holding-time draws (scale 500 slots by default) up to positive slot counts.
 """
 
 from __future__ import annotations
 
+import math
 import os
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
@@ -120,13 +121,22 @@ def sample_request(rng: np.random.Generator, request_id: int, cfg: WorkloadConfi
 
 def generate_workload(rng: np.random.Generator, num_requests: int, lam: float,
                       cfg: WorkloadConfig = WorkloadConfig(), id_offset: int = 0) -> List[Request]:
-    """Poisson arrivals (rate ``lam`` per slot) with exponentially distributed holding times."""
-    t = 0.0
+    """Generate integer activity intervals [arrival, departure) on a unit-slot clock.
+
+    Accumulate the continuous Poisson arrival times before rounding. This allows multiple
+    requests to arrive at one boundary, including at rates greater than one request per slot.
+    """
+    if not math.isfinite(lam) or lam <= 0:
+        raise ValueError("lam must be finite and positive")
+    if not math.isfinite(cfg.mean_holding) or cfg.mean_holding <= 0:
+        raise ValueError("mean_holding must be finite and positive")
+    continuous_arrival = 0.0
     requests = []
     for k in range(num_requests):
-        t += float(rng.exponential(1.0 / lam))
-        holding = float(rng.exponential(cfg.mean_holding))
-        requests.append(sample_request(rng, id_offset + k, cfg, arrival=t, departure=t + holding))
+        continuous_arrival += rng.exponential(1.0 / lam)
+        arrival = math.ceil(continuous_arrival)
+        holding_slots = max(1, math.ceil(rng.exponential(cfg.mean_holding)))
+        requests.append(sample_request(rng, id_offset + k, cfg, arrival=arrival, departure=arrival + holding_slots))
     return requests
 
 
